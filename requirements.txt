@@ -1,0 +1,9 @@
+PyYAML
+numpy
+scipy
+opencv-python
+Pillow
+tqdm
+torch --index-url https://download.pytorch.org/whl/cu128
+tensorboard
+huggingface_hub

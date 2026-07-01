@@ -1,0 +1,90 @@
+# Training configuration for OmniMVS V2
+#
+# datasets:
+#   Each entry is one training stage (initial training → optional finetuning).
+#   subsets: list of folder names relative to data_root.
+#   Train/eval/test splits are physical subdirectories created by helpers/download_omnimvs.py.
+#
+# parameters.data.phi_deg:
+#   Vertical half-angle of the equirectangular grid in degrees.
+#   45° = ±45° (90° total FOV). The top/bottom regions of the fisheye
+#   are noisy and provide little signal, so OmniMVS clips them here.
+#   This matches the 160×640 output_size: 160 px cover 90° vertically.
+
+datasets:
+  - name: "OmniThings"
+    subsets:
+      - "Things"
+    epochs: 30
+    optimizer:
+      lr: 0.003
+      momentum: 0.9
+      scheduler:
+        steps: [20]          # decay ×0.1 after epoch 20
+        gamma: 0.1
+
+  - name: "Finetune"
+    subsets:
+      - "House"
+      - "Urban_Sunny"
+      - "Urban_Cloudy"
+      - "Urban_Sunset"
+    epochs: 24
+    optimizer:
+      lr: 0.003
+      momentum: 0.9
+      scheduler:
+        steps: [12, 18]      # decay ×0.1 after epoch 12, again after epoch 18 (paper: 12+6)
+        gamma: 0.1
+
+parameters:
+  general:
+    device: "cuda:0"
+    name: "OmniMVS_V2"
+
+  spherical_sweep:
+    min_depth: 1.65                  # matches omnimvs_sweep_min_depth in raw_dataset configs
+    max_depth: 4503599627370496.0   # effectively 1/EPS ≈ infinity
+    num_invdepth: 192
+    delete_lut: false
+
+  data:
+    data_root: "./datasets"
+    output_size: [160, 640]
+    phi_deg: 45.0             # ±45° vertical — clips noisy top/bottom fisheye regions
+    dtype: "gt"               # load ground-truth depth
+    remove_gt_noise: true     # morphological hole-filling on GT mask
+
+  training:
+    pipeline: "amp"           # "default" or "amp"
+    loss_type: "huber"    # "mean", "smooth_l1", "huber"
+    batch_size: 1             # model does not support batching (SphericalSweep is batch_size=1 only)
+    dataloader:
+      shuffle: true
+      num_workers: 2
+      pin_memory: true
+      persistent_workers: false
+      prefetch_factor: 2
+
+  model:
+    channel: 32
+    weights_path: "./logs/OmniMVS_V2_things.pt"
+
+  validation:
+    interval: 1
+
+  logging:
+    log_dir: "./logs"
+    log_interval: 100
+    use_tensorboard: true
+    disable_tqdm: false
+
+  test:
+    run_inference: false
+    eval_dataset_without_model: false
+    ground_truth_comparison: true
+    precision: "float32"
+    iterations: null
+    random_order: true
+    save_invdepth: false
+    save_panorama: false

@@ -1,0 +1,80 @@
+# Quick smoke-test config — 1 epoch per stage to verify the pipeline end-to-end.
+# Mirrors data/training.yaml exactly but with epochs: 1 everywhere.
+
+datasets:
+  - name: "OmniThings"
+    subsets:
+      - "Things"
+    epochs: 2
+    optimizer:
+      lr: 0.003
+      momentum: 0.9
+      scheduler:
+        steps: [20]
+        gamma: 0.1
+
+  - name: "Finetune"
+    subsets:
+      - "Urban_Sunny"
+      - "Urban_Cloudy"
+      - "Urban_Sunset"
+      - "Polarstation"
+    epochs: 2
+    optimizer:
+      lr: 0.003
+      momentum: 0.9
+      scheduler:
+        steps: [12, 18]
+        gamma: 0.1
+
+parameters:
+  general:
+    device: "cuda:0"
+    name: "OmniMVS_Quick"
+
+  spherical_sweep:
+    min_depth: 1.65
+    max_depth: 4503599627370496.0
+    num_invdepth: 192
+    delete_lut: false
+
+  data:
+    data_root: "./datasets"
+    output_size: [160, 640]
+    phi_deg: 45.0
+    dtype: "gt"
+    remove_gt_noise: true
+
+  training:
+    pipeline: "amp"
+    loss_type: "huber"
+    batch_size: 1
+    dataloader:
+      shuffle: true
+      num_workers: 4
+      pin_memory: true
+      persistent_workers: true
+      prefetch_factor: 2
+
+  model:
+    channel: 32
+    weights_path: null
+
+  validation:
+    interval: 1
+
+  logging:
+    log_dir: "./logs"
+    log_interval: 100
+    use_tensorboard: true
+    disable_tqdm: false
+
+  test:
+    run_inference: false
+    eval_dataset_without_model: false
+    ground_truth_comparison: true
+    precision: "float32"
+    iterations: null
+    random_order: true
+    save_invdepth: false
+    save_panorama: false

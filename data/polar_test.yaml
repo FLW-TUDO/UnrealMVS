@@ -1,0 +1,63 @@
+datasets:
+  - name: "PolarStation"
+    subsets:
+      - "Urban_Sunset"
+    epochs: 5
+    optimizer:
+      lr: 0.003
+      momentum: 0.9
+      scheduler:
+        steps: [4]
+        gamma: 0.1
+
+parameters:
+  general:
+    device: "cuda:0"
+    name: "OmniMVS_PolarStation"
+
+  spherical_sweep:
+    min_depth: 1.65
+    max_depth: 4503599627370496.0
+    num_invdepth: 192
+    delete_lut: false
+
+  data:
+    data_root: "./datasets"
+    output_size: [160, 640]
+    phi_deg: 45.0
+    dtype: "gt"
+    remove_gt_noise: true
+
+  training:
+    pipeline: "amp"
+    loss_type: "huber"
+    batch_size: 1
+    dataloader:
+      shuffle: true
+      num_workers: 2
+      pin_memory: false
+      persistent_workers: false
+      prefetch_factor: 2
+
+  model:
+    channel: 32
+    weights_path: null
+
+  validation:
+    interval: 1
+
+  logging:
+    log_dir: "./logs"
+    log_interval: 100
+    use_tensorboard: true
+    disable_tqdm: false
+
+  test:
+    run_inference: false
+    eval_dataset_without_model: false
+    ground_truth_comparison: true
+    precision: "float32"
+    iterations: null
+    random_order: true
+    save_invdepth: false
+    save_panorama: false
