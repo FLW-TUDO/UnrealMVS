@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Datasets (data directories, not source code)
+raw_datasets/
+/datasets/
+Datasets/
+
+# HuggingFace staging (managed via HF git/LFS separately)
+hf/
+
+# Windows metadata
+*Zone.Identifier
+*.pdf
+
+# Logs and outputs
+logs/
+debug_frames/
+
+# Model weights
+*.pt
+*.pth
+
+# IDE
+.vscode/
+.idea/
+.claude
